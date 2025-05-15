@@ -87,6 +87,7 @@ public:
     float voice_noise_gain;
     float voice_pitch_factor;
     bool synth_enabled;
+    bool synth_enabled_previous;
     float synth_gain;
     float synth_pitch_bend;
 

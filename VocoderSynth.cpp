@@ -30,7 +30,7 @@ VocoderSynth::VocoderSynth(const double sample_rate, const LV2_Feature *const *f
     synth(sample_rate, features, *this),
     voice(sample_rate, *this)
 {
-
+    synth_enabled_previous = false;
 }
 
 void VocoderSynth::UpdateControls(void)
@@ -74,6 +74,12 @@ void VocoderSynth::connectPort(const uint32_t port, void* data_location)
 void VocoderSynth::run(const uint32_t sample_count)
 {
     UpdateControls();
+    if(synth_enabled!=synth_enabled_previous){
+        if(!synth_enabled){
+            synth.AllNotesOff();
+        }
+    }
+    synth_enabled_previous = synth_enabled;
     if(synth_enabled){
         synth.EvaluateStart(midi_in);
     }

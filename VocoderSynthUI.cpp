@@ -23,161 +23,125 @@ Contact: tim.krause@twkrause.ca
 
 */
 #include <iostream>
-#include "cairo/cairo.h"
 #include "VocoderSynthUI.h"
 #include <stdexcept>
-#include "xadjustment.h"
-#include "xputty.h"
-#include "xwidget.h"
-#include "xwidgets.h"
 
-enum CtlTypes
-{
-    CTYPE_KNOB,
-    CTYPE_BUTTON,
-};
-
-struct CtlProps
-{
-    CtlTypes ctlType;
-    int data;
-    const char *label;
-    int x;
-    int y;
-    int width;
-    int height;
-    float std_value;
-    float value;
-    float min_value;
-    float max_value;
-    float step;
-    CL_type cl_type;
-};
-
-CtlProps ctlProps[CONTROL_NCONTROLS] =
-{
-    {
-        CTYPE_BUTTON, PORT_CONTROL + CONTROL_RAW_ENABLE,
-        "Raw Enable",
-        0, 0, 119, 29,
-        0.0f, 1.0f, 0.0f, 0.0f, 0.0f, CL_CONTINUOS
-    },
-    {
-        CTYPE_BUTTON, PORT_CONTROL + CONTROL_VOICE_ENABLE,
-        "Voice Enable",
-        120, 0, 119, 29,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, CL_CONTINUOS
-    },
-    {
-        CTYPE_KNOB, PORT_CONTROL + CONTROL_VOICE_IMPULSE_GAIN,
-        "Impulse",
-        120, 50, 59, 79,
-        25.0f, 25.0f, 0.0f, 30.0f, 0.1f, CL_CONTINUOS
-    },
-    {
-        CTYPE_KNOB, PORT_CONTROL + CONTROL_VOICE_NOISE_GAIN,
-        "Noise",
-        180, 50, 59, 79,
-        3.0f, 3.0f, 0.0f, 30.0f, 0.1f, CL_CONTINUOS
-    },
-    {
-        CTYPE_KNOB, PORT_CONTROL + CONTROL_VOICE_PITCH_OFFSET,
-        "Pitch Shift",
-        150, 130, 59, 79,
-        0.0f, 0.0f, -12.0f, 12.0f, 0.1f, CL_CONTINUOS
-    },
-    {
-        CTYPE_BUTTON, PORT_CONTROL + CONTROL_SYNTH_ENABLE,
-        "Synth Enable",
-        240, 0, 119, 29,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, CL_CONTINUOS
-    },
-    {
-        CTYPE_KNOB, PORT_CONTROL + CONTROL_SYNTH_GAIN,
-        "Gain",
-        240, 50, 59, 79,
-        20.0f, 20.0f, 0.0f, 30.0f, 0.1f, CL_CONTINUOS
-    },
-    {
-        CTYPE_KNOB, PORT_CONTROL + CONTROL_SYNTH_BEND_RANGE,
-        "Bend",
-        300, 50, 59, 79,
-        0.0f, 0.0f, 0.0f, 12.0f, 0.1f, CL_CONTINUOS
-    }
-};
-
-struct LblProps
-{
-    const char *label;
-    int x,y,width,height;
-};
-
-#define N_LABELS 3
-
-LblProps lblProps[N_LABELS] =
-{
-    {
-        "Raw Enable", 0, 30, 119, 19,
-    },
-    {
-        "Voice Enable", 120, 30, 119, 19,
-    },
-    {
-        "Synth Enable", 240, 30, 119, 19,
-    }
-};
-
-VocoderSynthUI::VocoderSynthUI (LV2UI_Write_Function write_function, LV2UI_Controller controller, void* parentXWindow, std::string bundlePath):
+VocoderSynthUI::VocoderSynthUI (
+    LV2UI_Write_Function write_function,
+    LV2UI_Controller controller,
+    void* parentXWindow,
+    std::string bundlePath)
+:
+    Window (WINDOW_WIDTH, WINDOW_HEIGHT, 
+        reinterpret_cast<PuglNativeView>(parentXWindow),
+        BUTILITIES_URID_UNKNOWN_URID, 
+        "VocoderSynth",
+        WINDOW_RESIZABLE, PUGL_MODULE, 0),
     write_function(write_function),
-    controller(controller)
+    controller(controller),
+    raw_enable_label(COL1_LABEL_X, CK_BX_LABEL_Y, LABEL_WIDTH, LABEL_HEIGHT, "Raw"),
+    voice_enable_label(COL2_LABEL_X, CK_BX_LABEL_Y, LABEL_WIDTH, LABEL_HEIGHT, "Voice"),
+    synth_enable_label(COL3_LABEL_X, CK_BX_LABEL_Y, LABEL_WIDTH, LABEL_HEIGHT, "Synth"),
+    voice_impulse_label(COL2A_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Impulse"),
+    voice_noise_label(COL2B_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Noise"),
+    voice_pitch_label(COL2_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Pitch"),
+    synth_gain_label(COL3_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Gain"),
+    synth_bend_label(COL3_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Bend"),
+    raw_enable(COL1_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, RAW_STATE),
+    voice_enable(COL2_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, VOICE_STATE),
+    synth_enable(COL3_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, SYNTH_STATE),
+    voice_impulse(COL2A_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_IMP_VALUE, VC_IMP_MIN, VC_IMP_MAX, VC_IMP_STEP),
+    voice_noise(COL2B_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_NSE_VALUE, VC_NSE_MIN, VC_NSE_MAX, VC_NSE_STEP),
+    voice_pitch(COL2_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_PTC_VALUE, VC_PTC_MIN, VC_PTC_MAX, VC_PTC_STEP),
+    synth_gain(COL3_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_GAN_VALUE, SN_GAN_MIN, SN_GAN_MAX, SN_GAN_STEP),
+    synth_bend(COL3_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_BND_VALUE, SN_BND_MIN, SN_BND_MAX, SN_BND_STEP)
 {
-    main_init (&main);
-    box = create_window (&main, reinterpret_cast<Window>(parentXWindow), 0, 0, 360, 210);
-    box->parent_struct = this;
-    box->label = "VocoderSynth";
-    box->func.expose_callback = exposeCallback;
+    raw_enable.setTitle("Raw enable");
+    voice_enable.setTitle("Voice controlled enable");
+    synth_enable.setTitle("Synth enable");
+    voice_impulse.setTitle("Impulse gain(dB)");
+    voice_noise.setTitle("Noise gain(dB)");
+    voice_pitch.setTitle("Pitch offset(semitones)");
+    synth_gain.setTitle("Synth impulse gain(dB)");
+    synth_bend.setTitle("Synth bender range(semitones)");
 
-    for(int i=0;i<CONTROL_NCONTROLS;i++){
-        CtlProps *p = &ctlProps[i];
-        if(p->ctlType==CTYPE_KNOB){
-            controls[i] = add_knob(box,
-                p->label, p->x, p->y, p->width, p->height);
-            set_adjustment(controls[i]->adj,
-                p->std_value, p->value, p->min_value, p->max_value,
-                p->step, p->cl_type);
-        }else if(p->ctlType==CTYPE_BUTTON){
-            controls[i] = add_on_off_button(box,
-                p->label, p->x, p->y, p->width, p->height);
-            adj_set_value(controls[i]->adj, p->value);
-        }
-        controls[i]->parent_struct = this;
-        controls[i]->data = p->data;
-        controls[i]->func.value_changed_callback = valueChangedCallback;
-    }
+    setCallbackFunction(
+        BEvents::Event::EventType::configureRequestEvent,
+        configureCallback);
 
-    for(int i=0;i<N_LABELS;i++){
-        LblProps *p = &lblProps[i];
-        Widget_t *l = add_label(box, p->label, p->x, p->y,
-            p->width, p->height);
-    }
+    raw_enable.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        raw_enable_callback);
 
+    voice_enable.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        voice_enable_callback);
 
-    widget_show_all (box);
+    synth_enable.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_enable_callback);
+
+    voice_impulse.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        voice_impulse_callback);
+
+    voice_noise.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        voice_noise_callback);
+
+    voice_pitch.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        voice_pitch_callback);
+
+    synth_gain.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_gain_callback);
+
+    synth_bend.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_bend_callback);
+
+    voice_impulse.setClickable(false);
+    voice_noise.setClickable(false);
+    voice_pitch.setClickable(false);
+    synth_gain.setClickable(false);
+    synth_bend.setClickable(false);
+
+    BStyles::Font labelFont("sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL, 12.0, BStyles::Font::TextAlign::center, BStyles::Font::TextVAlign::middle);
+    raw_enable_label.setFont(labelFont);
+    voice_enable_label.setFont(labelFont);
+    synth_enable_label.setFont(labelFont);
+    voice_impulse_label.setFont(labelFont);
+    voice_noise_label.setFont(labelFont);
+    voice_pitch_label.setFont(labelFont);
+    synth_gain_label.setFont(labelFont);
+    synth_bend_label.setFont(labelFont);
+
+    add(&raw_enable_label);
+    add(&voice_enable_label);
+    add(&synth_enable_label);
+    add(&voice_impulse_label);
+    add(&voice_noise_label);
+    add(&voice_pitch_label);
+    add(&synth_gain_label);
+    add(&synth_bend_label);
+    add(&raw_enable);
+    add(&voice_enable);
+    add(&synth_enable);
+    add(&voice_impulse);
+    add(&voice_noise);
+    add(&voice_pitch);
+    add(&synth_gain);
+    add(&synth_bend);
 }
 
 VocoderSynthUI::~VocoderSynthUI()
 {
-    main_quit (&main);
 }
 
 LV2UI_Widget VocoderSynthUI::getTopLevelWidget()
 {
-    return reinterpret_cast<LV2UI_Widget>(box->widget);
-}
-
-Xputty* VocoderSynthUI::getXputty()
-{
-    return &main;
+    return reinterpret_cast<LV2UI_Widget>(puglGetNativeView(getView()));
 }
 
 void VocoderSynthUI::portEvent(uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
@@ -185,30 +149,160 @@ void VocoderSynthUI::portEvent(uint32_t port_index, uint32_t buffer_size, uint32
     if (format == 0)
     {
         const float value = *static_cast<const float*>(buffer);
-        if(port_index>=PORT_CONTROL &&
-            port_index<PORT_CONTROL+CONTROL_NCONTROLS)
-        {
-            adj_set_value(controls[port_index - PORT_CONTROL]->adj, value);
+        switch(port_index){
+        case PORT_CONTROL + CONTROL_RAW_ENABLE:
+            raw_enable.setValue(value!=0.0f);
+            break;
+        case PORT_CONTROL + CONTROL_VOICE_ENABLE:
+            voice_enable.setValue(value!=0.0f);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_ENABLE:
+            synth_enable.setValue(value!=0.0f);
+            break;
+        case PORT_CONTROL + CONTROL_VOICE_IMPULSE_GAIN:
+            voice_impulse.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_VOICE_NOISE_GAIN:
+            voice_noise.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_VOICE_PITCH_OFFSET:
+            voice_pitch.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_GAIN:
+            synth_gain.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_BEND_RANGE:
+            synth_bend.setValue(value);
+            break;
+        default:
+            break;
         }
     }
 }
 
-void VocoderSynthUI::valueChangedCallback (void* obj, void* data)
+void VocoderSynthUI::configureCallback(BEvents::Event* event)
 {
-    Widget_t* widget = static_cast<Widget_t*>(obj);
-    VocoderSynthUI* ui = static_cast<VocoderSynthUI*>(widget->parent_struct);
+    BEvents::ExposeEvent* ev = dynamic_cast<BEvents::ExposeEvent*>(event);
+    if (!ev) return;
+    Window* w = dynamic_cast<Window*>(ev->getWidget());
+    if (!w) return;
+
+    double sx = ev->getArea().getWidth() / WINDOW_WIDTH;
+    double sy = ev->getArea().getHeight() / WINDOW_HEIGHT;
+	const double sz = (sx<sy) ? sx : sy;
+	w->setZoom (sz);
+}
+
+void VocoderSynthUI::raw_enable_callback(BEvents::Event* event)
+{
+    BWidgets::CheckBox* d = dynamic_cast<BWidgets::CheckBox*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
     if (ui)
     {
-        float value = adj_get_value (widget->adj);
-        ui->write_function (ui->controller, widget->data, sizeof(value), 0, &value);
+        float gain = d->getValue()?1.0f:0.0f;
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_RAW_ENABLE,
+            sizeof(gain), 0, &gain);
     }
 }
 
-void VocoderSynthUI::exposeCallback (void* obj, void* data)
+void VocoderSynthUI::voice_enable_callback(BEvents::Event* event)
 {
-    Widget_t* widget = static_cast<Widget_t*>(obj);
-    cairo_set_source_rgb (widget->crb, 0.25, 0.25, 0.25 );
-    cairo_paint (widget->crb);
+    BWidgets::CheckBox* d = dynamic_cast<BWidgets::CheckBox*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue()?1.0f:0.0f;
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_VOICE_ENABLE,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_enable_callback(BEvents::Event* event)
+{
+    BWidgets::CheckBox* d = dynamic_cast<BWidgets::CheckBox*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue()?1.0f:0.0f;
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_ENABLE,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::voice_impulse_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_VOICE_IMPULSE_GAIN,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::voice_noise_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_VOICE_NOISE_GAIN,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::voice_pitch_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_VOICE_PITCH_OFFSET,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_gain_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_GAIN,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_bend_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_BEND_RANGE,
+            sizeof(gain), 0, &gain);
+    }
 }
 
 static LV2UI_Handle instantiate(const struct LV2UI_Descriptor *descriptor, const char *plugin_uri, const char *bundle_path, LV2UI_Write_Function write_function, LV2UI_Controller controller, LV2UI_Widget *widget, const LV2_Feature *const *features)
@@ -254,7 +348,7 @@ static void port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_siz
 static int ui_idle (LV2UI_Handle ui)
 {
     VocoderSynthUI* myUi = static_cast<VocoderSynthUI*>(ui);
-    run_embedded (myUi->getXputty());
+    myUi->handleEvents();
     return 0;
 }
 

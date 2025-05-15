@@ -11,22 +11,19 @@ all: VocoderSynth.so VocoderSynthUI.so
 VocoderSynth.so:$(OBJECTS)
 	g++ -shared -o VocoderSynth.so $(OBJECTS) -lm
 
-LIBXPUTTY=libxputty/libxputty
-
-
-VocoderSynthUI.so:VocoderSynthUI.cpp $(LIBXPUTTY)/libxputty.a
+VocoderSynthUI.so:VocoderSynthUI.cpp BWidgets/build/libbwidgetscore.a
 	g++ -shared -fPIC -o VocoderSynthUI.so \
 	`pkg-config --cflags lv2 cairo x11` \
-	-I$(LIBXPUTTY)/include \
+	-IBWidgets/include \
 	VocoderSynthUI.cpp \
 	`pkg-config --libs lv2 cairo x11` \
-	-L$(LIBXPUTTY) -lxputty
+	-LBWidgets/build -lbwidgetscore -lcairoplus -lpugl
 
-libxputty/Makefile:
+BWidgets/makefile:
 	git submodule update --init --recursive
 	
-$(LIBXPUTTY)/libxputty.a:libxputty/Makefile
-	make -C libxputty
+BWidgets/build/libbwidgetscore.a: BWidgets/makefile
+	make -C BWidgets
 
 install:VocoderSynth.lv2 all
 	cp manifest.ttl VocoderSynth.lv2
