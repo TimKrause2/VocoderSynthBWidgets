@@ -1,7 +1,7 @@
 /*
 VocoderSynth is a DSP plugin.
 
-Copyright 2024 Tim Krause
+Copyright 2024-2025 Tim Krause
 
 This file is part of VocoderSynth
 
