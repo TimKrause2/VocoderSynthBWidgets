@@ -19,10 +19,10 @@ controlled synth of impulse generators with an ADSR.
 - **Synth Enable** controls the MIDI impulse generator synth.
 - **Gain** sets the gain of the MIDI synth in dB.
 - **Bend** sets the pitch bend range of the MIDI synth in semitones.
-- **Attack** attack time in seconds.
-- **Decay** decay time in seconds.
-- **Sustain** sustain level in percent.
-- **Release** release time in seconds.
+- **Attack** sets attack time in seconds.
+- **Decay** sets decay time in seconds.
+- **Sustain** sets sustain level in percent.
+- **Release** sets release time in seconds.
 
 ## Inputs
 
