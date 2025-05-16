@@ -1,44 +1,13 @@
-# VocoderSynth ![GPL license logo!](https://www.gnu.org/graphics/gplv3-or-later.png)
+# VocoderSynthBWidgets ![GPL license logo!](https://www.gnu.org/graphics/gplv3-or-later.png)
 
 ![Screenshot of VocoderSynth.!](https://github.com/TimKrause2/VocoderSynthBWidgets/blob/main/screenshot.png "VocoderSynth with BWidgets.")
 
 ## Description
 
 VocoderSynth LV2 plugin is a Linear Predictive Coding based
-vocoder with 3 selectable inputs: raw audio, a voice
+vocoder with 3 selectable modules: raw audio, a voice
 controlled impulse and noise generator and a MIDI
-controlled synth of impulse generators.
-
-## Building Prerequisites
-
-In order to build VocoderSynth you need these prerequisites.
-
-- g++ and gcc
-- libcairo2-dev
-- libx11-dev
-- make
-- pkg-config
-- git
-
-On Ubuntu this can be done by the following.
-
-```
-sudo apt install g++ gcc make libcairo2-dev libx11-dev pkg-config git
-```
-
-## Clone and make
-
-In a terminal enter the following.
-
-```
-git clone https://github.com/TimKrause2/VocoderSynth.git
-cd VocoderSynth
-make
-make install
-```
-
-The install directory is `.lv2` in your home directory.
-
+controlled synth of impulse generators with an ADSR.
 
 ## Controls
 
@@ -50,3 +19,46 @@ The install directory is `.lv2` in your home directory.
 - **Synth Enable** controls the MIDI impulse generator synth.
 - **Gain** sets the gain of the MIDI synth in dB.
 - **Bend** sets the pitch bend range of the MIDI synth in semitones.
+- **Attack** attack time in seconds.
+- **Decay** decay time in seconds.
+- **Sustain** sustain level in percent.
+- **Release** release time in seconds.
+
+## Inputs
+
+- **Control Audio In** This input is analysed and used to determine the filter of the Vocoder and the pitch of the voice module.
+- **Raw Audio In** This input is filtered by the Vocoder.
+- **MIDI In** This input is a MIDI input that controls the synthesizer.
+
+## Building Prerequisites
+
+In order to build VocoderSynth you need these prerequisites.
+
+- g++ and gcc
+- libcairo2-dev
+- libx11-dev
+- lv2-dev
+- make
+- pkg-config
+- git
+
+On Ubuntu this can be done by the following.
+
+```
+sudo apt install g++ gcc make libcairo2-dev libx11-dev lv2-dev pkg-config git
+```
+
+## Clone and make
+
+In a terminal enter the following.
+
+```
+git clone https://github.com/TimKrause2/VocoderSynthBWidgets.git
+cd VocoderSynthBWidgets
+make
+make install
+```
+
+The install directory is `.lv2` in your home directory.
+
+
