@@ -57,7 +57,7 @@ Contact: tim.krause@twkrause.ca
 #define COL1_X BORDER
 #define COL2_X (COL1_X + LABEL_WIDTH)
 #define COL3_X (COL2_X + LABEL_WIDTH*2)
-#define WINDOW_WIDTH (COL3_X + LABEL_WIDTH + BORDER)
+#define WINDOW_WIDTH (COL3_X + LABEL_WIDTH*3 + BORDER)
 #define COL1_CNTR (COL1_X + LABEL_WIDTH/2)
 #define COL1_CK_BX_X (COL1_CNTR - CK_BX_WIDTH/2)
 #define COL1_LABEL_X (COL1_CNTR - LABEL_WIDTH/2)
@@ -73,10 +73,21 @@ Contact: tim.krause@twkrause.ca
 #define COL2A_LABEL_X (COL2A_CNTR - LABEL_WIDTH/2)
 #define COL2B_VL_DL_X (COL2B_CNTR - VL_DL_WIDTH/2)
 #define COL2B_LABEL_X (COL2B_CNTR - LABEL_WIDTH/2)
-#define COL3_CNTR (COL3_X + LABEL_WIDTH/2)
+#define COL3_CNTR (COL3_X + LABEL_WIDTH*3/2)
 #define COL3_CK_BX_X (COL3_CNTR - CK_BX_WIDTH/2)
-#define COL3_VL_DL_X (COL3_CNTR - VL_DL_WIDTH/2)
 #define COL3_LABEL_X (COL3_CNTR - LABEL_WIDTH/2)
+#define COL3A_X (COL3_X)
+#define COL3B_X (COL3A_X + LABEL_WIDTH)
+#define COL3C_X (COL3B_X + LABEL_WIDTH)
+#define COL3A_CNTR (COL3A_X + LABEL_WIDTH/2)
+#define COL3B_CNTR (COL3B_X + LABEL_WIDTH/2)
+#define COL3C_CNTR (COL3C_X + LABEL_WIDTH/2)
+#define COL3A_VL_DL_X (COL3A_CNTR - VL_DL_WIDTH/2)
+#define COL3A_LABEL_X (COL3A_CNTR - LABEL_WIDTH/2)
+#define COL3B_VL_DL_X (COL3B_CNTR - VL_DL_WIDTH/2)
+#define COL3B_LABEL_X (COL3B_CNTR - LABEL_WIDTH/2)
+#define COL3C_VL_DL_X (COL3C_CNTR - VL_DL_WIDTH/2)
+#define COL3C_LABEL_X (COL3C_CNTR - LABEL_WIDTH/2)
 
 #define RAW_STATE   true
 #define VOICE_STATE false
@@ -107,6 +118,26 @@ Contact: tim.krause@twkrause.ca
 #define SN_BND_MAX 12.0
 #define SN_BND_STEP 0.25
 
+#define SN_ATK_VALUE 0.5
+#define SN_ATK_MIN 0.0
+#define SN_ATK_MAX 60.0
+#define SN_ATK_STEP 0.1
+
+#define SN_DCY_VALUE 0.5
+#define SN_DCY_MIN 0.0
+#define SN_DCY_MAX 60.0
+#define SN_DCY_STEP 0.1
+
+#define SN_STN_VALUE 75.0
+#define SN_STN_MIN 0.0
+#define SN_STN_MAX 100.0
+#define SN_STN_STEP 0.1
+
+#define SN_RLS_VALUE 0.5
+#define SN_RLS_MIN 0.0
+#define SN_RLS_MAX 60.0
+#define SN_RLS_STEP 0.1
+
 class VocoderSynthUI : public BWidgets::Window
 {
 private:
@@ -120,6 +151,10 @@ private:
     BWidgets::Label voice_pitch_label;
     BWidgets::Label synth_gain_label;
     BWidgets::Label synth_bend_label;
+    BWidgets::Label synth_attack_label;
+    BWidgets::Label synth_decay_label;
+    BWidgets::Label synth_sustain_label;
+    BWidgets::Label synth_release_label;
     BWidgets::CheckBox raw_enable;
     BWidgets::CheckBox voice_enable;
     BWidgets::CheckBox synth_enable;
@@ -128,6 +163,10 @@ private:
     BWidgets::ValueDial voice_pitch;
     BWidgets::ValueDial synth_gain;
     BWidgets::ValueDial synth_bend;
+    BWidgets::ValueDial synth_attack;
+    BWidgets::ValueDial synth_decay;
+    BWidgets::ValueDial synth_sustain;
+    BWidgets::ValueDial synth_release;
 
 public:
     VocoderSynthUI (LV2UI_Write_Function write_function, LV2UI_Controller controller, void* parentXWindow, std::string bundlePath);
@@ -143,4 +182,8 @@ public:
     static void synth_enable_callback(BEvents::Event* event);
     static void synth_gain_callback(BEvents::Event* event);
     static void synth_bend_callback(BEvents::Event* event);
+    static void synth_attack_callback(BEvents::Event* event);
+    static void synth_decay_callback(BEvents::Event* event);
+    static void synth_sustain_callback(BEvents::Event* event);
+    static void synth_release_callback(BEvents::Event* event);
 };

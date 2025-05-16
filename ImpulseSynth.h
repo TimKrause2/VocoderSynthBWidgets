@@ -34,15 +34,30 @@ Contact: tim.krause@twkrause.ca
 #include <lv2/atom/util.h>
 #include "ImpulseGen.h"
 
-#define N_VOICES 4
+#define N_VOICES 16
 
 class ImpulseSynth;
 class VocoderSynth;
+
+enum EnvState
+{
+    ENV_ATTACK,
+    ENV_DECAY,
+    ENV_SUSTAIN,
+    ENV_RELEASE
+};
 
 struct Voice
 {
     uint8_t note;
     uint8_t vel;
+    EnvState state;
+    float envelope;
+    float denvelope;
+    float attack; // Attack time in seconds. Can be zero.
+    float decay;
+    float sustain;
+    float release;
     double sample_rate;
     float freq0;
     ImpulseSynth &synth;
@@ -52,6 +67,7 @@ struct Voice
     Voice(double sample_rate, ImpulseSynth &synth);
     void NoteOn(uint8_t note, uint8_t vel);
     void NoteOff(uint8_t vel);
+    float dEnvelope(float t);
     float Evaluate(void);
 };
 
@@ -71,6 +87,7 @@ private:
     const LV2_Atom_Sequence *sequence;
     LV2_Atom_Event* event;
     void NextEvent(void);
+    void ProcessEvent(void);
     uint32_t frame;
     LV2_URID MidiEvent_URID;
     double sample_rate;

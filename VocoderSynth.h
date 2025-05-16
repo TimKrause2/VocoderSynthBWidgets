@@ -36,7 +36,10 @@ Contact: tim.krause@twkrause.ca
  *  9 - control 5 input impulse synth select
  * 10 - control 6 input impulse synth gain
  * 11 - control 7 input impulse synth pitch bend range
- *
+ * 12 - control 8 input impulse synth attack
+ * 13 - control 9 input impulse synth decay
+ * 14 - control 10 input impulse synth sustain
+ * 15 - control 11 input impulse synth release
  */
 #pragma once
 #include "ImpulseSynth.h"
@@ -54,6 +57,10 @@ enum ControlPorts
     CONTROL_SYNTH_ENABLE,
     CONTROL_SYNTH_GAIN,
     CONTROL_SYNTH_BEND_RANGE,
+    CONTROL_SYNTH_ATTACK,
+    CONTROL_SYNTH_DECAY,
+    CONTROL_SYNTH_SUSTAIN,
+    CONTROL_SYNTH_RELEASE,
     CONTROL_NCONTROLS
 };
 
@@ -90,6 +97,10 @@ public:
     bool synth_enabled_previous;
     float synth_gain;
     float synth_pitch_bend;
+    float synth_attack;
+    float synth_decay;
+    float synth_sustain;
+    float synth_release;
 
     VocoderSynth(const double sample_rate, const LV2_Feature *const *features);
     void connectPort(const uint32_t port, void* data_location);

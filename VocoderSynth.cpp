@@ -43,6 +43,10 @@ void VocoderSynth::UpdateControls(void)
     synth_enabled = *controls[CONTROL_SYNTH_ENABLE]>0.0f;
     synth_gain = powf(10.0f, *controls[CONTROL_SYNTH_GAIN]/20.0f);
     synth_pitch_bend = *controls[CONTROL_SYNTH_BEND_RANGE];
+    synth_attack = *controls[CONTROL_SYNTH_ATTACK];
+    synth_decay = *controls[CONTROL_SYNTH_DECAY];
+    synth_sustain = *controls[CONTROL_SYNTH_SUSTAIN]/100.0f;
+    synth_release = *controls[CONTROL_SYNTH_RELEASE];
 }
 
 void VocoderSynth::connectPort(const uint32_t port, void* data_location)

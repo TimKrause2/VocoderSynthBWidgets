@@ -38,19 +38,68 @@ void Voice::NoteOn(uint8_t note, uint8_t vel)
 {
     Voice::note = note;
     Voice::vel = vel;
+    attack  = synth.plugin.synth_attack;
+    decay   = synth.plugin.synth_decay;
+    sustain = synth.plugin.synth_sustain;
+    release = synth.plugin.synth_release;
     freq0 = 440.0f*powf(2.0f,((float)note-69.0f)/12.0f);
+    state = ENV_ATTACK;
+    denvelope = dEnvelope(attack);
 }
 
 void Voice::NoteOff(uint8_t vel)
 {
-    synth.DeactivateVoice(this);
+    state = ENV_RELEASE;
+    denvelope = dEnvelope(release);
+    //synth.DeactivateVoice(this);
+}
+
+float Voice::dEnvelope(float t)
+{
+    if(t==0.0f){
+        return 1.0f;
+    }else{
+        float r = 1.0f/t/sample_rate;
+        if(r>1.0f)
+            r=1.0f;
+        return r;
+    }
 }
 
 float Voice::Evaluate(void)
 {
     float freq = freq0 * powf(2.0f,synth.pitch_bend*synth.plugin.synth_pitch_bend/12.0f);
     gen.Tperiod = sample_rate / freq;
-    return gen.Evaluate()*synth.plugin.synth_gain;
+    // update the envelope
+    bool deactivate = false;
+    switch(state){
+        case ENV_ATTACK:
+            envelope += denvelope;
+            if(envelope>=1.0f){
+                envelope = 1.0f;
+                state = ENV_DECAY;
+                denvelope = dEnvelope(decay);
+            }
+            break;
+        case ENV_DECAY:
+            envelope -= denvelope;
+            if(envelope<=sustain){
+                envelope = sustain;
+                state = ENV_SUSTAIN;
+            }
+            break;
+        case ENV_SUSTAIN:
+            break;
+        case ENV_RELEASE:
+            envelope -= denvelope;
+            if(envelope<=0.0f){
+                envelope = 0.0f;
+                synth.DeactivateVoice(this);
+            }
+            break;
+
+    }
+    return gen.Evaluate()*envelope*synth.plugin.synth_gain;
 }
 
 ImpulseSynth::ImpulseSynth(
@@ -118,6 +167,7 @@ void ImpulseSynth::NoteOn(uint8_t note, uint8_t vel)
         voice = keys[note].voice;
     }else{
         voice = ActivateVoice();
+        voice->envelope = 0.0f;
     }
     voice->NoteOn(note,vel);
     keys[note].voice = voice;
@@ -169,40 +219,47 @@ void ImpulseSynth::NextEvent(void)
         event = nullptr;
 }
 
+void ImpulseSynth::ProcessEvent(void)
+{
+    if(event->body.type == MidiEvent_URID){
+        const uint8_t* const msg = (const uint8_t*)(event + 1);
+        const uint8_t type = lv2_midi_message_type(msg);
+        switch(type){
+        case LV2_MIDI_MSG_NOTE_ON:
+            NoteOn(msg[1], msg[2]);
+            break;
+
+        case LV2_MIDI_MSG_NOTE_OFF:
+            NoteOff(msg[1], msg[2]);
+            break;
+
+        case LV2_MIDI_MSG_CONTROLLER:
+            if(msg[1]>=LV2_MIDI_CTL_ALL_SOUNDS_OFF)
+                AllNotesOff();
+            break;
+
+        case LV2_MIDI_MSG_BENDER:
+            Bender(msg[1], msg[2]);
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
 float ImpulseSynth::Evaluate(void)
 {
     while(event && event->time.frames==frame)
     {
-        if(event->body.type == MidiEvent_URID){
-            const uint8_t* const msg = (const uint8_t*)(event + 1);
-            const uint8_t type = lv2_midi_message_type(msg);
-            switch(type){
-            case LV2_MIDI_MSG_NOTE_ON:
-                NoteOn(msg[1], msg[2]);
-                break;
-
-            case LV2_MIDI_MSG_NOTE_OFF:
-                NoteOff(msg[1], msg[2]);
-                break;
-
-            case LV2_MIDI_MSG_CONTROLLER:
-                if(msg[1]>=LV2_MIDI_CTL_ALL_SOUNDS_OFF)
-                    AllNotesOff();
-                break;
-
-            case LV2_MIDI_MSG_BENDER:
-                Bender(msg[1], msg[2]);
-                break;
-
-            default:
-                break;
-            }
-        }
+        ProcessEvent();
         NextEvent();
     }
     frame++;
     float y=0.0f;
-    for(auto &voice:active_voices){
+    for(auto it=active_voices.begin();it!=active_voices.end();){
+        Voice *voice = *it;
+        it++;
         y += voice->Evaluate();
     }
     return y;

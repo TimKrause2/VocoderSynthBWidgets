@@ -45,16 +45,24 @@ VocoderSynthUI::VocoderSynthUI (
     voice_impulse_label(COL2A_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Impulse"),
     voice_noise_label(COL2B_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Noise"),
     voice_pitch_label(COL2_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Pitch"),
-    synth_gain_label(COL3_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Gain"),
-    synth_bend_label(COL3_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Bend"),
+    synth_gain_label(COL3A_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Gain"),
+    synth_bend_label(COL3A_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Bend"),
+    synth_attack_label(COL3B_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Attack"),
+    synth_decay_label(COL3C_LABEL_X, VL_DL_LABEL_ROW1_Y, LABEL_WIDTH, LABEL_HEIGHT, "Decay"),
+    synth_sustain_label(COL3B_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Sustain"),
+    synth_release_label(COL3C_LABEL_X, VL_DL_LABEL_ROW2_Y, LABEL_WIDTH, LABEL_HEIGHT, "Release"),
     raw_enable(COL1_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, RAW_STATE),
     voice_enable(COL2_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, VOICE_STATE),
     synth_enable(COL3_CK_BX_X, CK_BX_Y, CK_BX_WIDTH, CK_BX_HEIGHT, true, SYNTH_STATE),
     voice_impulse(COL2A_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_IMP_VALUE, VC_IMP_MIN, VC_IMP_MAX, VC_IMP_STEP),
     voice_noise(COL2B_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_NSE_VALUE, VC_NSE_MIN, VC_NSE_MAX, VC_NSE_STEP),
     voice_pitch(COL2_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, VC_PTC_VALUE, VC_PTC_MIN, VC_PTC_MAX, VC_PTC_STEP),
-    synth_gain(COL3_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_GAN_VALUE, SN_GAN_MIN, SN_GAN_MAX, SN_GAN_STEP),
-    synth_bend(COL3_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_BND_VALUE, SN_BND_MIN, SN_BND_MAX, SN_BND_STEP)
+    synth_gain(COL3A_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_GAN_VALUE, SN_GAN_MIN, SN_GAN_MAX, SN_GAN_STEP),
+    synth_bend(COL3A_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_BND_VALUE, SN_BND_MIN, SN_BND_MAX, SN_BND_STEP),
+    synth_attack(COL3B_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_ATK_VALUE, SN_ATK_MIN, SN_ATK_MAX, SN_ATK_STEP),
+    synth_decay(COL3C_VL_DL_X, VL_DL_ROW1_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_DCY_VALUE, SN_DCY_MIN, SN_DCY_MAX, SN_DCY_STEP),
+    synth_sustain(COL3B_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_STN_VALUE, SN_STN_MIN, SN_STN_MAX, SN_STN_STEP),
+    synth_release(COL3C_VL_DL_X, VL_DL_ROW2_Y, VL_DL_WIDTH, VL_DL_HEIGHT, SN_RLS_VALUE, SN_RLS_MIN, SN_RLS_MAX, SN_RLS_STEP)
 {
     raw_enable.setTitle("Raw enable");
     voice_enable.setTitle("Voice controlled enable");
@@ -64,6 +72,10 @@ VocoderSynthUI::VocoderSynthUI (
     voice_pitch.setTitle("Pitch offset(semitones)");
     synth_gain.setTitle("Synth impulse gain(dB)");
     synth_bend.setTitle("Synth bender range(semitones)");
+    synth_attack.setTitle("Synth attack(seconds)");
+    synth_decay.setTitle("Synth decay(seconds)");
+    synth_sustain.setTitle("Synth sustain(percentage)");
+    synth_release.setTitle("Synth release(seconds)");
 
     setCallbackFunction(
         BEvents::Event::EventType::configureRequestEvent,
@@ -101,11 +113,31 @@ VocoderSynthUI::VocoderSynthUI (
         BEvents::Event::EventType::valueChangedEvent,
         synth_bend_callback);
 
+    synth_attack.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_attack_callback);
+
+    synth_decay.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_decay_callback);
+
+    synth_sustain.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_sustain_callback);
+
+    synth_release.setCallbackFunction(
+        BEvents::Event::EventType::valueChangedEvent,
+        synth_release_callback);
+
     voice_impulse.setClickable(false);
     voice_noise.setClickable(false);
     voice_pitch.setClickable(false);
     synth_gain.setClickable(false);
     synth_bend.setClickable(false);
+    synth_attack.setClickable(false);
+    synth_decay.setClickable(false);
+    synth_sustain.setClickable(false);
+    synth_release.setClickable(false);
 
     BStyles::Font labelFont("sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL, 12.0, BStyles::Font::TextAlign::center, BStyles::Font::TextVAlign::middle);
     raw_enable_label.setFont(labelFont);
@@ -116,6 +148,10 @@ VocoderSynthUI::VocoderSynthUI (
     voice_pitch_label.setFont(labelFont);
     synth_gain_label.setFont(labelFont);
     synth_bend_label.setFont(labelFont);
+    synth_attack_label.setFont(labelFont);
+    synth_decay_label.setFont(labelFont);
+    synth_release_label.setFont(labelFont);
+    synth_sustain_label.setFont(labelFont);
 
     add(&raw_enable_label);
     add(&voice_enable_label);
@@ -125,6 +161,10 @@ VocoderSynthUI::VocoderSynthUI (
     add(&voice_pitch_label);
     add(&synth_gain_label);
     add(&synth_bend_label);
+    add(&synth_attack_label);
+    add(&synth_decay_label);
+    add(&synth_sustain_label);
+    add(&synth_release_label);
     add(&raw_enable);
     add(&voice_enable);
     add(&synth_enable);
@@ -133,6 +173,10 @@ VocoderSynthUI::VocoderSynthUI (
     add(&voice_pitch);
     add(&synth_gain);
     add(&synth_bend);
+    add(&synth_attack);
+    add(&synth_decay);
+    add(&synth_sustain);
+    add(&synth_release);
 }
 
 VocoderSynthUI::~VocoderSynthUI()
@@ -173,6 +217,18 @@ void VocoderSynthUI::portEvent(uint32_t port_index, uint32_t buffer_size, uint32
             break;
         case PORT_CONTROL + CONTROL_SYNTH_BEND_RANGE:
             synth_bend.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_ATTACK:
+            synth_attack.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_DECAY:
+            synth_decay.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_SUSTAIN:
+            synth_sustain.setValue(value);
+            break;
+        case PORT_CONTROL + CONTROL_SYNTH_RELEASE:
+            synth_release.setValue(value);
             break;
         default:
             break;
@@ -301,6 +357,62 @@ void VocoderSynthUI::synth_bend_callback(BEvents::Event* event)
         ui->write_function (
             ui->controller,
             PORT_CONTROL + CONTROL_SYNTH_BEND_RANGE,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_attack_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_ATTACK,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_decay_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_DECAY,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_sustain_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_SUSTAIN,
+            sizeof(gain), 0, &gain);
+    }
+}
+
+void VocoderSynthUI::synth_release_callback(BEvents::Event* event)
+{
+    BWidgets::ValueDial* d = dynamic_cast<BWidgets::ValueDial*>(event->getWidget());
+    VocoderSynthUI* ui = dynamic_cast<VocoderSynthUI*>(d->getMainWindow());
+    if (ui)
+    {
+        float gain = d->getValue();
+        ui->write_function (
+            ui->controller,
+            PORT_CONTROL + CONTROL_SYNTH_RELEASE,
             sizeof(gain), 0, &gain);
     }
 }
