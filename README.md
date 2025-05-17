@@ -30,6 +30,16 @@ controlled synth of impulse generators with an ADSR.
 - **Raw Audio In** This input is filtered by the Vocoder.
 - **MIDI In** This input is a MIDI input that controls the synthesizer.
 
+## Use in Ardour
+
+1. Create or select a mono track.
+2. Insert a VocoderSynth plugin.
+3. Open the pin connections dialog.
+4. Enable sidechains.
+5. Add a MIDI sidechain.
+6. Connect the inputs to the sidechains.
+7. Select the sidechain sources.
+
 ## Building Prerequisites
 
 In order to build VocoderSynth you need these prerequisites.
