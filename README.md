@@ -32,6 +32,8 @@ controlled synth of impulse generators with an ADSR.
 
 ## Use in Ardour
 
+Use the following steps to setup VocoderSynth in Ardour.
+
 1. Create or select a mono track.
 2. Insert a VocoderSynth plugin.
 3. Open the pin connections dialog.
@@ -39,6 +41,9 @@ controlled synth of impulse generators with an ADSR.
 5. Add a MIDI sidechain.
 6. Connect the inputs to the sidechains.
 7. Select the sidechain sources.
+
+To edit the dial values with the keyboard click on the keyboard icon in the top right hand corner of the plugin window.
+When you are done editing click the keyboard icon again to use the keyboard in Ardour.
 
 ## Building Prerequisites
 
